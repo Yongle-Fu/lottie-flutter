@@ -454,11 +454,11 @@ class _LottieBuilderState extends State<LottieBuilder> {
         'loadingFuture', _loadingFuture));
   }
 
-  @override
-  void dispose() {
-    if (widget.disposable) {
-      sharedLottieCache.remove(widget.lottie.cacheKey);
-    }
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   if (widget.disposable) {
+  //     sharedLottieCache.remove(widget.lottie.cacheKey);
+  //   }
+  //   super.dispose();
+  // }
 }

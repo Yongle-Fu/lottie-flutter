@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'dart:typed_data';
+
 import 'package:archive/archive.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
+
 import 'frame_rate.dart';
 import 'logger.dart';
 import 'lottie_image_asset.dart';
@@ -14,6 +16,7 @@ import 'parser/lottie_composition_parser.dart';
 import 'parser/moshi/json_reader.dart';
 import 'performance_tracker.dart';
 import 'providers/load_image.dart';
+import 'providers/lottie_provider.dart';
 
 void internalInit(
     LottieComposition composition,
@@ -45,12 +48,13 @@ void internalInit(
 }
 
 class LottieComposition {
-  static Future<LottieComposition> fromByteData(ByteData data, {String name}) {
-    return fromBytes(data.buffer.asUint8List(), name: name);
+  static Future<LottieComposition> fromByteData(ByteData data,
+      {String name, String cacheKey}) {
+    return fromBytes(data.buffer.asUint8List(), name: name, cacheKey: cacheKey);
   }
 
   static Future<LottieComposition> fromBytes(Uint8List bytes,
-      {String name}) async {
+      {String name, String cacheKey}) async {
     Archive archive;
     if (bytes[0] == 0x50 && bytes[1] == 0x4B) {
       archive = ZipDecoder().decodeBytes(bytes);
@@ -59,7 +63,7 @@ class LottieComposition {
     }
 
     var composition = LottieCompositionParser.parse(
-        LottieComposition._(name), JsonReader.fromBytes(bytes));
+        LottieComposition._(name, cacheKey), JsonReader.fromBytes(bytes));
 
     if (archive != null) {
       for (var image in composition.images.values) {
@@ -77,9 +81,10 @@ class LottieComposition {
     return composition;
   }
 
-  LottieComposition._(this.name);
+  LottieComposition._(this.name, this.cacheKey);
 
   final String name;
+  final String cacheKey;
   final _performanceTracker = PerformanceTracker();
   // This is stored as a set to avoid duplicates.
   final _warnings = <String>{};
@@ -198,6 +203,8 @@ class LottieComposition {
   }
 
   void dispose() {
+    print('LottieComposition dispose, key=$cacheKey');
+    sharedLottieCache.remove(cacheKey);
     _images.values.forEach((e) {
       e.dispose();
     });

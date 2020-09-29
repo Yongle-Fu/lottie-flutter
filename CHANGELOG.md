@@ -1,3 +1,6 @@
+## [0.6.1+1]
+- remove from sharedLottieCache when LottieComposition dispose
+
 ## [0.6.1]
 - add `disposable` param to evict from cache when object dispose
 

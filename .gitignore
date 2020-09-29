@@ -10,3 +10,4 @@ _*
 **/doc/api/
 build/
 IDEWorkspaceChecks.plist
+skipoauth.snapshot

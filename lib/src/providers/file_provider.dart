@@ -21,7 +21,8 @@ class FileLottie extends LottieProvider {
     return sharedLottieCache.putIfAbsent(cacheKey, () async {
       var bytes = await io.loadFile(file);
       var composition = await LottieComposition.fromBytes(bytes,
-          name: p.basenameWithoutExtension(io.filePath(file)));
+          name: p.basenameWithoutExtension(io.filePath(file)),
+          cacheKey: cacheKey);
 
       for (var image in composition.images.values) {
         image.loadedImage ??= await _loadImage(composition, image);
