@@ -1,3 +1,7 @@
+#
+## [0.6.1+2]
+- update logging ref
+
 ## [0.6.1+1]
 - remove from sharedLottieCache when LottieComposition dispose
 
