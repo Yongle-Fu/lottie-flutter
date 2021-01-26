@@ -157,7 +157,7 @@ packages:
       name: logging
       url: "http://47.111.166.90:8081"
     source: hosted
-    version: "0.11.4+7"
+    version: "0.11.4+8"
   matcher:
     dependency: transitive
     description:
