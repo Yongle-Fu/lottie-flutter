@@ -1,19 +1,16 @@
 import 'package:flutter/cupertino.dart';
-
 import '../../lottie.dart';
 import 'load_image.dart';
 
 abstract class LottieProvider {
   LottieProvider({this.imageProviderFactory});
 
-  final LottieImageProviderFactory imageProviderFactory;
+  final LottieImageProviderFactory? imageProviderFactory;
 
-  String get cacheKey;
-
-  ImageProvider getImageProvider(LottieImageAsset lottieImage) {
+  ImageProvider? getImageProvider(LottieImageAsset lottieImage) {
     var imageProvider = fromDataUri(lottieImage.fileName);
     if (imageProvider == null && imageProviderFactory != null) {
-      imageProvider = imageProviderFactory(lottieImage);
+      imageProvider = imageProviderFactory!(lottieImage);
     }
     return imageProvider;
   }
@@ -25,7 +22,7 @@ class LottieCache {
   final int maximumSize;
   final _cache = <String, Future<LottieComposition>>{};
 
-  LottieCache({int maximumSize}) : maximumSize = maximumSize ?? 1000;
+  LottieCache({int? maximumSize}) : maximumSize = maximumSize ?? 1000;
 
   Future<LottieComposition> putIfAbsent(
       String key, Future<LottieComposition> Function() load) {
@@ -48,10 +45,6 @@ class LottieCache {
     while (_cache.length > maximumSize) {
       _cache.remove(_cache.keys.first);
     }
-  }
-
-  void remove(String key) {
-    _cache.remove(key);
   }
 
   void clear() {

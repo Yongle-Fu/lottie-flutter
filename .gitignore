@@ -9,5 +9,3 @@ _*
 *.iml
 **/doc/api/
 build/
-IDEWorkspaceChecks.plist
-skipoauth.snapshot

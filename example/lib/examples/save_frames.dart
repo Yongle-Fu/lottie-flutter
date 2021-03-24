@@ -1,3 +1,5 @@
+//@dart=2.10
+
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -26,7 +28,7 @@ class _MyAppState extends State<MyApp> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              RaisedButton(
+              ElevatedButton(
                 child: Text('Export all frames'),
                 onPressed: _export,
               ),

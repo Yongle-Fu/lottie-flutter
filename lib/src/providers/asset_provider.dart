@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
-
 import '../composition.dart';
 import '../lottie_image_asset.dart';
 import 'load_image.dart';
@@ -15,29 +13,28 @@ class AssetLottie extends LottieProvider {
     this.assetName, {
     this.bundle,
     this.package,
-    LottieImageProviderFactory imageProviderFactory,
-  })  : assert(assetName != null),
-        super(imageProviderFactory: imageProviderFactory);
+    LottieImageProviderFactory? imageProviderFactory,
+  }) : super(imageProviderFactory: imageProviderFactory);
 
   final String assetName;
   String get keyName =>
       package == null ? assetName : 'packages/$package/$assetName';
 
-  final AssetBundle bundle;
+  final AssetBundle? bundle;
 
-  final String package;
-  @override
-  String get cacheKey => 'asset-$keyName-$bundle';
+  final String? package;
 
   @override
   Future<LottieComposition> load() async {
+    var cacheKey = 'asset-$keyName-$bundle';
     return sharedLottieCache.putIfAbsent(cacheKey, () async {
       final chosenBundle = bundle ?? rootBundle;
 
       var data = await chosenBundle.load(keyName);
 
       var composition = await LottieComposition.fromByteData(data,
-          name: p.url.basenameWithoutExtension(keyName), cacheKey: cacheKey);
+          name: p.url.basenameWithoutExtension(keyName),
+          imageProviderFactory: imageProviderFactory);
 
       for (var image in composition.images.values) {
         image.loadedImage ??= await _loadImage(composition, image);
@@ -47,7 +44,7 @@ class AssetLottie extends LottieProvider {
     });
   }
 
-  Future<ui.Image> _loadImage(
+  Future<ui.Image?> _loadImage(
       LottieComposition composition, LottieImageAsset lottieImage) {
     var imageProvider = getImageProvider(lottieImage);
 

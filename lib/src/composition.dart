@@ -1,10 +1,9 @@
 import 'dart:math';
 import 'dart:typed_data';
-
 import 'package:archive/archive.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
-
 import 'frame_rate.dart';
 import 'logger.dart';
 import 'lottie_image_asset.dart';
@@ -16,46 +15,34 @@ import 'parser/lottie_composition_parser.dart';
 import 'parser/moshi/json_reader.dart';
 import 'performance_tracker.dart';
 import 'providers/load_image.dart';
-import 'providers/lottie_provider.dart';
 
-void internalInit(
-    LottieComposition composition,
-    Rectangle<int> bounds,
-    double startFrame,
-    double endFrame,
-    double frameRate,
-    List<Layer> layers,
-    Map<int, Layer> layerMap,
-    Map<String, List<Layer>> precomps,
-    Map<String, LottieImageAsset> images,
-    Map<int, FontCharacter> characters,
-    Map<String, Font> fonts,
-    List<Marker> markers) {
-  assert(startFrame != endFrame, 'startFrame == endFrame ($startFrame)');
-  assert(frameRate > 0, 'invalid framerate: $frameRate');
-  composition
-    .._bounds = bounds
-    .._startFrame = startFrame
-    .._endFrame = endFrame
-    .._frameRate = frameRate
-    .._layers = layers
-    .._layerMap = layerMap
-    .._precomps = precomps
-    .._images = images
-    .._characters = characters
-    .._fonts = fonts
-    .._markers = markers;
+class CompositionParameters {
+  MutableRectangle<int> bounds = MutableRectangle<int>(0, 0, 0, 0);
+  double startFrame = 0.0;
+  double endFrame = 0;
+  double frameRate = 0;
+  final layers = <Layer>[];
+  final layerMap = <int, Layer>{};
+  final precomps = <String, List<Layer>>{};
+  final images = <String, LottieImageAsset>{};
+  final characters = <int, FontCharacter>{};
+  final fonts = <String, Font>{};
+  final markers = <Marker>[];
+
+  static CompositionParameters forComposition(LottieComposition composition) =>
+      composition._parameters;
 }
 
 class LottieComposition {
   static Future<LottieComposition> fromByteData(ByteData data,
-      {String name, String cacheKey}) {
-    return fromBytes(data.buffer.asUint8List(), name: name, cacheKey: cacheKey);
+      {String? name, LottieImageProviderFactory? imageProviderFactory}) {
+    return fromBytes(data.buffer.asUint8List(),
+        name: name, imageProviderFactory: imageProviderFactory);
   }
 
   static Future<LottieComposition> fromBytes(Uint8List bytes,
-      {String name, String cacheKey}) async {
-    Archive archive;
+      {String? name, LottieImageProviderFactory? imageProviderFactory}) async {
+    Archive? archive;
     if (bytes[0] == 0x50 && bytes[1] == 0x4B) {
       archive = ZipDecoder().decodeBytes(bytes);
       var jsonFile = archive.files.firstWhere((e) => e.name.endsWith('.json'));
@@ -63,16 +50,25 @@ class LottieComposition {
     }
 
     var composition = LottieCompositionParser.parse(
-        LottieComposition._(name, cacheKey), JsonReader.fromBytes(bytes));
+        LottieComposition._(name), JsonReader.fromBytes(bytes));
 
     if (archive != null) {
       for (var image in composition.images.values) {
         var imagePath = p.posix.join(image.dirName, image.fileName);
-        var found = archive.files.firstWhere(
-            (f) => f.name.toLowerCase() == imagePath.toLowerCase(),
-            orElse: () => null);
+        var found = archive.files.firstWhereOrNull(
+            (f) => f.name.toLowerCase() == imagePath.toLowerCase());
+
+        ImageProvider? provider;
+        if (imageProviderFactory != null) {
+          provider = imageProviderFactory(image);
+        }
+
+        if (provider != null) {
+          image.loadedImage = await loadImage(composition, image, provider);
+        }
+
         if (found != null) {
-          image.loadedImage = await loadImage(
+          image.loadedImage ??= await loadImage(
               composition, image, MemoryImage(found.content as Uint8List));
         }
       }
@@ -81,26 +77,15 @@ class LottieComposition {
     return composition;
   }
 
-  LottieComposition._(this.name, this.cacheKey);
+  LottieComposition._(this.name);
 
-  final String name;
-  final String cacheKey;
+  final String? name;
   final _performanceTracker = PerformanceTracker();
   // This is stored as a set to avoid duplicates.
   final _warnings = <String>{};
-  Map<String, List<Layer>> _precomps;
-  Map<String, LottieImageAsset> _images;
 
   /// Map of font names to fonts */
-  Map<String, Font> _fonts;
-  List<Marker> _markers;
-  Map<int, FontCharacter> _characters;
-  Map<int, Layer> _layerMap;
-  List<Layer> _layers;
-  Rectangle<int> _bounds;
-  double _startFrame;
-  double _endFrame;
-  double _frameRate;
+  final _parameters = CompositionParameters();
 
   /// Used to determine if an animation can be drawn with hardware acceleration.
   bool hasDashPattern = false;
@@ -111,7 +96,7 @@ class LottieComposition {
   int _maskAndMatteCount = 0;
 
   void addWarning(String warning) {
-    var prefix = name != null && name.isNotEmpty ? '$name: ' : '';
+    var prefix = name != null && name!.isNotEmpty ? '$name: ' : '';
     logger.warning('$prefix$warning');
     _warnings.add(warning);
   }
@@ -132,39 +117,39 @@ class LottieComposition {
 
   PerformanceTracker get performanceTracker => _performanceTracker;
 
-  Layer layerModelForId(int id) {
-    return _layerMap[id];
+  Layer? layerModelForId(int id) {
+    return _parameters.layerMap[id];
   }
 
-  Rectangle<int> get bounds => _bounds;
+  Rectangle<int> get bounds => _parameters.bounds;
 
   Duration get duration {
     return Duration(milliseconds: (seconds * 1000).round());
   }
 
-  double get seconds => durationFrames / _frameRate;
+  double get seconds => durationFrames / frameRate;
 
-  double get startFrame => _startFrame;
+  double get startFrame => _parameters.startFrame;
 
-  double get endFrame => _endFrame;
+  double get endFrame => _parameters.endFrame;
 
-  double get frameRate => _frameRate;
+  double get frameRate => _parameters.frameRate;
 
-  List<Layer> get layers => _layers;
+  List<Layer> get layers => _parameters.layers;
 
-  List<Layer> /*?*/ getPrecomps(String id) {
-    return _precomps[id];
+  List<Layer>? getPrecomps(String? id) {
+    return _parameters.precomps[id];
   }
 
-  Map<int, FontCharacter> get characters => _characters;
+  Map<int, FontCharacter> get characters => _parameters.characters;
 
-  Map<String, Font> get fonts => _fonts;
+  Map<String, Font> get fonts => _parameters.fonts;
 
-  List<Marker> get markers => _markers;
+  List<Marker> get markers => _parameters.markers;
 
-  Marker /*?*/ getMarker(String markerName) {
-    for (var i = 0; i < _markers.length; i++) {
-      var marker = _markers[i];
+  Marker? getMarker(String markerName) {
+    for (var i = 0; i < markers.length; i++) {
+      var marker = markers[i];
       if (marker.matchesName(markerName)) {
         return marker;
       }
@@ -173,20 +158,20 @@ class LottieComposition {
   }
 
   bool get hasImages {
-    return _images.isNotEmpty;
+    return images.isNotEmpty;
   }
 
   Map<String, LottieImageAsset> get images {
-    return _images;
+    return _parameters.images;
   }
 
   double get durationFrames {
-    return _endFrame - _startFrame;
+    return endFrame - startFrame;
   }
 
   /// Returns a "rounded" progress value according to the frameRate
-  double roundProgress(double progress, {@required FrameRate frameRate}) {
-    num fps;
+  double roundProgress(double progress, {required FrameRate frameRate}) {
+    num? fps;
     if (frameRate == FrameRate.max) {
       return progress;
     } else if (frameRate == FrameRate.composition) {
@@ -202,18 +187,10 @@ class LottieComposition {
     return roundedProgress;
   }
 
-  void dispose() {
-    print('LottieComposition dispose, key=$cacheKey');
-    sharedLottieCache.remove(cacheKey);
-    _images.values.forEach((e) {
-      e.dispose();
-    });
-  }
-
   @override
   String toString() {
     final sb = StringBuffer('LottieComposition:\n');
-    for (var layer in _layers) {
+    for (var layer in layers) {
       sb.write(layer.toStringWithPrefix('\t'));
     }
     return sb.toString();

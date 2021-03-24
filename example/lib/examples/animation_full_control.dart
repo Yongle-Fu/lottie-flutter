@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
-  AnimationController _controller;
+  late final AnimationController _controller;
 
   @override
   void initState() {
@@ -86,7 +86,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 30),
-            RaisedButton(
+            ElevatedButton(
               child: Text('Loop between frames'),
               onPressed: () {
                 // Loop between 2 specifics frames
@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
                   min: start,
                   max: stop,
                   reverse: true,
-                  period: _controller.duration * (stop - start),
+                  period: _controller.duration! * (stop - start),
                 );
               },
             ),

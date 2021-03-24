@@ -1,12 +1,20 @@
-#
-## [0.6.1+3]
-- update logging ref
+## [1.0.1]
+- Implement `RenderBox.computeDryLayout`
 
-## [0.6.1+1]
-- remove from sharedLottieCache when LottieComposition dispose
+## [1.0.0]
+- Migrate to null safety
+- Fix some rendering bugs
+- Add an image delegate to dynamically change images
+- Allow to use an imageProviderFactory with a zip file
 
-## [0.6.1]
-- add `disposable` param to evict from cache when object dispose
+## [0.7.1]
+- Fix a crash for some lottie file with empty paths.
+
+## [0.7.0+1]
+- Fix Flutter Web compilation error
+
+## [0.7.0]
+- Performance improvement for complex animations.
 
 ## [0.6.0]
 - Runs the animation at the frame rate specified in the json file (ie. An animation encoded with a 20 FPS will only

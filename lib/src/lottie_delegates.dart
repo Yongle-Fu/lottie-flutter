@@ -1,4 +1,6 @@
+import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
+import '../lottie.dart';
 import 'lottie_drawable.dart';
 import 'value_delegate.dart';
 
@@ -11,7 +13,7 @@ class LottieDelegates {
   /// Specify a callback to dynamically changes the text displayed in the lottie
   /// animation.
   /// For instance, this is useful when you want to translate the text in the animation.
-  final String Function(String) /*?*/ text;
+  final String Function(String)? text;
 
   /// A callback to map between a font family specified in the json animation
   /// with the font family in your assets.
@@ -24,7 +26,7 @@ class LottieDelegates {
   /// Given an object containing the font family and style specified in the json
   /// return a configured `TextStyle` that will be used as the base style when
   /// painting the text.
-  final TextStyle Function(LottieFontStyle) textStyle;
+  final TextStyle Function(LottieFontStyle)? textStyle;
 
   /// A list of value delegates to dynamically modify the animation
   /// properties at runtime.
@@ -41,14 +43,33 @@ class LottieDelegates {
   ///   ),
   /// );
   /// ```
-  final List<ValueDelegate> values;
+  final List<ValueDelegate>? values;
 
-  //TODO(xha): imageDelegate to change the image to display?
+  /// A callback to dynamically change an image of the animation.
+  ///
+  /// Example:
+  /// ```dart
+  /// Lottie.asset(
+  //   'assets/data.json',
+  //   delegates: LottieDelegates(
+  //     image: (composition, image) {
+  //       if (image.id == 'img_0' && _isMouseOver) {
+  //         return myCustomImage;
+  //       }
+  //
+  //       // Use the default method: composition.images[image.id].loadedImage;
+  //       return null;
+  //     },
+  //   )
+  // )
+  /// ```
+  final ui.Image? Function(LottieComposition, LottieImageAsset)? image;
 
   LottieDelegates({
     this.text,
-    TextStyle Function(LottieFontStyle) textStyle,
+    TextStyle Function(LottieFontStyle)? textStyle,
     this.values,
+    this.image,
   }) : textStyle = textStyle;
 
   @override

@@ -2,20 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
-
 import 'src/all_files.g.dart';
 
 void main() {
   Logger.root
     ..level = Level.ALL
     ..onRecord.listen(print);
-  Lottie.traceEnabled = false;
-
-  // var imageCache = PaintingBinding.instance.imageCache;
-  // print('${imageCache.maximumSizeBytes}');
-  // imageCache.maximumSize = 1000;
-  // imageCache.maximumSizeBytes = 20 << 20;
-
+  Lottie.traceEnabled = true;
   runApp(App());
 }
 
@@ -28,35 +21,36 @@ class App extends StatelessWidget {
         appBar: AppBar(
           title: Text('Lottie Flutter'),
         ),
-        body: GridView.builder(
-          itemCount: files.length,
-          gridDelegate:
-              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
-          itemBuilder: (context, index) {
-            var assetName = files[index];
-            return GestureDetector(
-              child: _Item(child: Text(assetName)),
-              // _Item(
-              //   child: Lottie.asset(
-              //     assetName,
-              //     frameBuilder: (context, child, composition) {
-              //       return AnimatedOpacity(
-              //         child: child,
-              //         opacity: composition == null ? 0 : 1,
-              //         duration: const Duration(seconds: 1),
-              //         curve: Curves.easeOut,
-              //       );
-              //     },
-              //   ),
-              // ),
-              onTap: () {
-                // Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
-                //     builder: (context) => Detail(assetName)));
-                Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (context) => Detail(assetName)));
-              },
-            );
-          },
+        body: Scrollbar(
+          child: GridView.builder(
+            itemCount: files.length,
+            gridDelegate:
+                SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
+            itemBuilder: (context, index) {
+              var assetName = files[index];
+              return GestureDetector(
+                child: _Item(
+                  child: Lottie.asset(
+                    assetName,
+                    frameBuilder: (context, child, composition) {
+                      return AnimatedOpacity(
+                        child: child,
+                        opacity: composition == null ? 0 : 1,
+                        duration: const Duration(seconds: 1),
+                        curve: Curves.easeOut,
+                      );
+                    },
+                  ),
+                ),
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                          builder: (context) => Detail(assetName)));
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -66,7 +60,7 @@ class App extends StatelessWidget {
 class _Item extends StatelessWidget {
   final Widget child;
 
-  const _Item({Key key, this.child}) : super(key: key);
+  const _Item({Key? key, required this.child}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,32 +85,23 @@ class _Item extends StatelessWidget {
 class Detail extends StatefulWidget {
   final String assetName;
 
-  const Detail(this.assetName, {Key key}) : super(key: key);
+  const Detail(this.assetName, {Key? key}) : super(key: key);
 
   @override
   _DetailState createState() => _DetailState();
 }
 
 class _DetailState extends State<Detail> with TickerProviderStateMixin {
-  AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(vsync: this);
-  }
+  late final _controller = AnimationController(vsync: this);
 
   @override
   void dispose() {
     _controller.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // return Text('aaa');
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.assetName}'),

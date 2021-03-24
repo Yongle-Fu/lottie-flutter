@@ -6,9 +6,9 @@
 Lottie is a mobile library for Android and iOS that parses [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 
 animations exported as json with [Bodymovin](https://github.com/airbnb/lottie-web) and renders them natively on mobile!
 
-This repository is a unofficial conversion of the [Lottie-android](https://github.com/airbnb/lottie-android) library in pure Dart. 
+This repository is an unofficial conversion of the [Lottie-android](https://github.com/airbnb/lottie-android) library in pure Dart. 
 
-It works on Android, iOS and macOS and web.
+It works on Android, iOS, macOS, linux, windows and web.
 
 ## Usage
 
@@ -64,7 +64,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with TickerProviderStateMixin {
-  AnimationController _controller;
+  late final AnimationController _controller;
 
   @override
   void initState() {
@@ -137,7 +137,7 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
-  Future<LottieComposition> _composition;
+  late final Future<LottieComposition> _composition;
 
   @override
   void initState() {
@@ -176,7 +176,7 @@ a specific position and size.
 class CustomDrawer extends StatelessWidget {
   final LottieComposition composition;
 
-  const CustomDrawer(this.composition, {Key key}) : super(key: key);
+  const CustomDrawer(this.composition, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -246,13 +246,12 @@ class _Animation extends StatelessWidget {
 ````
 
 ## Limitations
-Only the [supported features of Lottie Android](https://airbnb.io/lottie/#/supported-features)
-are supported in this port.
+This port supports the same [feature set as Lottie Android](https://airbnb.io/lottie/#/supported-features).
 
 ## Flutter Web
-Run the app with `flutter run -d Chrome --dart-define=FLUTTER_WEB_USE_SKIA=true --release`
+Run the app with `flutter run -d chrome --web-renderer canvaskit`
 
-See a preview here: https://xvrh.github.io/lottie-flutter/index.html
+See a preview here: https://xvrh.github.io/lottie-flutter-web/
 
 ## More examples
 See the `example` folder for more code samples of the various possibilities.

@@ -1,22 +1,19 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/painting.dart';
-
 class LottieImageAsset {
   final int width;
   final int height;
   final String id;
   final String fileName;
   final String dirName;
-  ui.Image loadedImage;
-  ImageProvider provider;
+  ui.Image? loadedImage;
 
   LottieImageAsset(
-      {this.width, this.height, this.id, this.fileName, this.dirName});
-
-  void dispose() {
-    provider?.evict();
-  }
+      {required this.width,
+      required this.height,
+      required this.id,
+      required this.fileName,
+      required this.dirName});
 
   @override
   String toString() =>

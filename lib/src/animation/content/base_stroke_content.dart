@@ -34,21 +34,20 @@ abstract class BaseStrokeContent
   final List<double> _dashPatternValues;
   final Paint paint = Paint()..style = PaintingStyle.stroke;
 
-  final BaseKeyframeAnimation<dynamic, double> _widthAnimation;
-  final BaseKeyframeAnimation<dynamic, int> _opacityAnimation;
-  final List<BaseKeyframeAnimation<dynamic, double>> _dashPatternAnimations;
-  final BaseKeyframeAnimation<dynamic,
-      double> /*?*/ _dashPatternOffsetAnimation;
-  BaseKeyframeAnimation<ColorFilter, ColorFilter> /*?*/ _colorFilterAnimation;
+  final BaseKeyframeAnimation<Object, double> _widthAnimation;
+  final BaseKeyframeAnimation<Object, int> _opacityAnimation;
+  final List<BaseKeyframeAnimation<Object, double>> _dashPatternAnimations;
+  final BaseKeyframeAnimation<Object, double>? _dashPatternOffsetAnimation;
+  BaseKeyframeAnimation<ColorFilter, ColorFilter?>? _colorFilterAnimation;
 
   BaseStrokeContent(this.lottieDrawable, this.layer,
-      {StrokeCap cap,
-      StrokeJoin join,
-      double miterLimit,
-      AnimatableIntegerValue opacity,
-      AnimatableDoubleValue width,
-      List<AnimatableDoubleValue> dashPattern,
-      AnimatableDoubleValue dashOffset})
+      {required StrokeCap cap,
+      required StrokeJoin join,
+      required double miterLimit,
+      required AnimatableIntegerValue opacity,
+      required AnimatableDoubleValue width,
+      required List<AnimatableDoubleValue> dashPattern,
+      AnimatableDoubleValue? dashOffset})
       : _widthAnimation = width.createAnimation(),
         _opacityAnimation = opacity.createAnimation(),
         _dashPatternOffsetAnimation = dashOffset?.createAnimation(),
@@ -76,7 +75,7 @@ abstract class BaseStrokeContent
       _dashPatternAnimations[i].addUpdateListener(onUpdateListener);
     }
     if (_dashPatternOffsetAnimation != null) {
-      _dashPatternOffsetAnimation.addUpdateListener(onUpdateListener);
+      _dashPatternOffsetAnimation!.addUpdateListener(onUpdateListener);
     }
   }
 
@@ -86,7 +85,7 @@ abstract class BaseStrokeContent
 
   @override
   void setContents(List<Content> contentsBefore, List<Content> contentsAfter) {
-    TrimPathContent trimPathContentBefore;
+    TrimPathContent? trimPathContentBefore;
     for (var i = contentsBefore.length - 1; i >= 0; i--) {
       var content = contentsBefore[i];
       if (content is TrimPathContent &&
@@ -98,7 +97,7 @@ abstract class BaseStrokeContent
       trimPathContentBefore.addListener(onUpdateListener);
     }
 
-    _PathGroup currentPathGroup;
+    _PathGroup? currentPathGroup;
     for (var i = contentsAfter.length - 1; i >= 0; i--) {
       var content = contentsAfter[i];
       if (content is TrimPathContent &&
@@ -119,7 +118,8 @@ abstract class BaseStrokeContent
   }
 
   @override
-  void draw(Canvas canvas, Size size, Matrix4 parentMatrix, {int parentAlpha}) {
+  void draw(Canvas canvas, Size size, Matrix4 parentMatrix,
+      {required int parentAlpha}) {
     L.beginSection('StrokeContent#draw');
     if (parentMatrix.hasZeroScaleAxis) {
       L.endSection('StrokeContent#draw');
@@ -136,7 +136,7 @@ abstract class BaseStrokeContent
     }
 
     if (_colorFilterAnimation != null) {
-      paint.colorFilter = _colorFilterAnimation.value;
+      paint.colorFilter = _colorFilterAnimation!.value;
     }
 
     for (var i = 0; i < _pathGroups.length; i++) {
@@ -175,18 +175,17 @@ abstract class BaseStrokeContent
     var pathMetrics = _path.computeMetrics().toList();
     var totalLength = pathMetrics.fold<double>(0.0, (a, b) => a + b.length);
 
-    var offsetLength = totalLength * pathGroup.trimPath.offset.value / 360.0;
-    var startLength =
-        totalLength * pathGroup.trimPath.start.value / 100.0 + offsetLength;
-    var endLength =
-        totalLength * pathGroup.trimPath.end.value / 100.0 + offsetLength;
+    var trimPath = pathGroup.trimPath!;
+    var offsetLength = totalLength * trimPath.offset.value / 360.0;
+    var startLength = totalLength * trimPath.start.value / 100.0 + offsetLength;
+    var endLength = totalLength * trimPath.end.value / 100.0 + offsetLength;
 
     var currentLength = 0.0;
     for (var j = pathGroup.paths.length - 1; j >= 0; j--) {
       _trimPathPath
           .set(pathGroup.paths[j].getPath().transform(parentMatrix.storage));
       var pathMetrics = _trimPathPath.computeMetrics().toList();
-      var length = pathMetrics.first.length;
+      var length = pathMetrics.isNotEmpty ? pathMetrics.first.length : 0;
       if (endLength > totalLength &&
           endLength - totalLength < currentLength + length &&
           currentLength < endLength - totalLength) {
@@ -229,7 +228,7 @@ abstract class BaseStrokeContent
   }
 
   @override
-  Rect getBounds(Matrix4 parentMatrix, {bool applyParents}) {
+  Rect getBounds(Matrix4 parentMatrix, {required bool applyParents}) {
     L.beginSection('StrokeContent#getBounds');
     _path.reset();
     for (var i = 0; i < _pathGroups.length; i++) {
@@ -242,11 +241,9 @@ abstract class BaseStrokeContent
     var bounds = _path.getBounds();
 
     var width = _widthAnimation.value;
-    bounds = Rect.fromLTWH(bounds.left - width / 2.0, bounds.top - width / 2.0,
-        bounds.right + width / 2.0, bounds.bottom + width / 2.0);
+    bounds = bounds.inflate(width / 2.0);
     // Add padding to account for rounding errors.
-    bounds = Rect.fromLTWH(
-        bounds.left - 1, bounds.top - 1, bounds.right + 1, bounds.bottom + 1);
+    bounds = bounds.inflate(1);
     L.endSection('StrokeContent#getBounds');
     return bounds;
   }
@@ -279,7 +276,7 @@ abstract class BaseStrokeContent
 
     var offset = _dashPatternOffsetAnimation == null
         ? 0.0
-        : _dashPatternOffsetAnimation.value * scale;
+        : _dashPatternOffsetAnimation!.value * scale;
     var newPath = dashPath(path, intervals: _dashPatternValues, phase: offset);
     L.endSection('StrokeContent#applyDashPattern');
 
@@ -295,7 +292,7 @@ abstract class BaseStrokeContent
 
   @override
   @mustCallSuper
-  void addValueCallback<T>(T property, LottieValueCallback<T> /*?*/ callback) {
+  void addValueCallback<T>(T property, LottieValueCallback<T>? callback) {
     if (property == LottieProperty.opacity) {
       _opacityAnimation.setValueCallback(callback as LottieValueCallback<int>);
     } else if (property == LottieProperty.strokeWidth) {
@@ -309,9 +306,9 @@ abstract class BaseStrokeContent
         _colorFilterAnimation = null;
       } else {
         _colorFilterAnimation =
-            ValueCallbackKeyframeAnimation<ColorFilter, ColorFilter>(
-                callback as LottieValueCallback<ColorFilter>);
-        _colorFilterAnimation.addUpdateListener(onUpdateListener);
+            ValueCallbackKeyframeAnimation<ColorFilter, ColorFilter?>(
+                callback as LottieValueCallback<ColorFilter>, null);
+        _colorFilterAnimation!.addUpdateListener(onUpdateListener);
         layer.addAnimation(_colorFilterAnimation);
       }
     }
@@ -321,7 +318,7 @@ abstract class BaseStrokeContent
 /// Data class to help drawing trim paths individually.
 class _PathGroup {
   final List<PathContent> paths = <PathContent>[];
-  final TrimPathContent /*?*/ trimPath;
+  final TrimPathContent? trimPath;
 
   _PathGroup(this.trimPath);
 }

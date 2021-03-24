@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-
 import '../lottie.dart';
 import 'frame_rate.dart';
 import 'lottie.dart';
@@ -18,7 +16,7 @@ import 'providers/network_provider.dart';
 typedef LottieFrameBuilder = Widget Function(
   BuildContext context,
   Widget child,
-  LottieComposition composition,
+  LottieComposition? composition,
 );
 
 /// A widget that displays a Lottie animation.
@@ -35,8 +33,8 @@ typedef LottieFrameBuilder = Widget Function(
 ///
 class LottieBuilder extends StatefulWidget {
   const LottieBuilder({
-    Key key,
-    @required this.lottie,
+    Key? key,
+    required this.lottie,
     this.controller,
     this.frameRate,
     this.animate,
@@ -50,17 +48,13 @@ class LottieBuilder extends StatefulWidget {
     this.height,
     this.fit,
     this.alignment,
-    bool addRepaintBoundary,
-    bool disposable,
-  })  : assert(lottie != null),
-        addRepaintBoundary = addRepaintBoundary ?? true,
-        disposable = disposable ?? true,
-        super(key: key);
+    this.addRepaintBoundary,
+  }) : super(key: key);
 
   /// Creates a widget that displays an [LottieComposition] obtained from the network.
   LottieBuilder.network(
     String src, {
-    Map<String, String> headers,
+    Map<String, String>? headers,
     this.controller,
     this.frameRate,
     this.animate,
@@ -68,20 +62,17 @@ class LottieBuilder extends StatefulWidget {
     this.repeat,
     this.delegates,
     this.options,
-    LottieImageProviderFactory imageProviderFactory,
+    LottieImageProviderFactory? imageProviderFactory,
     this.onLoaded,
-    Key key,
+    Key? key,
     this.frameBuilder,
     this.width,
     this.height,
     this.fit,
     this.alignment,
-    bool addRepaintBoundary,
-    bool disposable,
+    this.addRepaintBoundary,
   })  : lottie = NetworkLottie(src,
             headers: headers, imageProviderFactory: imageProviderFactory),
-        addRepaintBoundary = addRepaintBoundary ?? true,
-        disposable = disposable ?? true,
         super(key: key);
 
   /// Creates a widget that displays an [LottieComposition] obtained from a [File].
@@ -103,19 +94,16 @@ class LottieBuilder extends StatefulWidget {
     this.repeat,
     this.delegates,
     this.options,
-    LottieImageProviderFactory imageProviderFactory,
+    LottieImageProviderFactory? imageProviderFactory,
     this.onLoaded,
-    Key key,
+    Key? key,
     this.frameBuilder,
     this.width,
     this.height,
     this.fit,
     this.alignment,
-    bool addRepaintBoundary,
-    bool disposable,
+    this.addRepaintBoundary,
   })  : lottie = FileLottie(file, imageProviderFactory: imageProviderFactory),
-        addRepaintBoundary = addRepaintBoundary ?? true,
-        disposable = disposable ?? true,
         super(key: key);
 
   /// Creates a widget that displays an [LottieComposition] obtained from an [AssetBundle].
@@ -128,24 +116,21 @@ class LottieBuilder extends StatefulWidget {
     this.repeat,
     this.delegates,
     this.options,
-    LottieImageProviderFactory imageProviderFactory,
+    LottieImageProviderFactory? imageProviderFactory,
     this.onLoaded,
-    Key key,
-    AssetBundle bundle,
+    Key? key,
+    AssetBundle? bundle,
     this.frameBuilder,
     this.width,
     this.height,
     this.fit,
     this.alignment,
-    String package,
-    bool addRepaintBoundary,
-    bool disposable,
+    String? package,
+    this.addRepaintBoundary,
   })  : lottie = AssetLottie(name,
             bundle: bundle,
             package: package,
             imageProviderFactory: imageProviderFactory),
-        addRepaintBoundary = addRepaintBoundary ?? true,
-        disposable = disposable ?? true,
         super(key: key);
 
   /// Creates a widget that displays an [LottieComposition] obtained from a [Uint8List].
@@ -158,20 +143,17 @@ class LottieBuilder extends StatefulWidget {
     this.repeat,
     this.delegates,
     this.options,
-    LottieImageProviderFactory imageProviderFactory,
+    LottieImageProviderFactory? imageProviderFactory,
     this.onLoaded,
-    Key key,
+    Key? key,
     this.frameBuilder,
     this.width,
     this.height,
     this.fit,
     this.alignment,
-    bool addRepaintBoundary,
-    bool disposable,
+    this.addRepaintBoundary,
   })  : lottie =
             MemoryLottie(bytes, imageProviderFactory: imageProviderFactory),
-        addRepaintBoundary = addRepaintBoundary ?? true,
-        disposable = disposable ?? true,
         super(key: key);
 
   /// The lottie animation to load.
@@ -181,45 +163,45 @@ class LottieBuilder extends StatefulWidget {
   /// A callback called when the LottieComposition has been loaded.
   /// You can use this callback to set the correct duration on the AnimationController
   /// with `composition.duration`
-  final void Function(LottieComposition) onLoaded;
+  final void Function(LottieComposition)? onLoaded;
 
   /// The animation controller of the Lottie animation.
   /// The animated value will be mapped to the `progress` property of the
   /// Lottie animation.
-  final Animation<double> controller;
+  final Animation<double>? controller;
 
   /// The number of frames per second to render.
   /// Use `FrameRate.composition` to use the original frame rate of the Lottie composition (default)
   /// Use `FrameRate.max` to advance the animation progression at every frame.
-  final FrameRate frameRate;
+  final FrameRate? frameRate;
 
   /// If no controller is specified, this value indicate whether or not the
   /// Lottie animation should be played automatically (default to true).
   /// If there is an animation controller specified, this property has no effect.
   ///
   /// See [repeat] to control whether the animation should repeat.
-  final bool animate;
+  final bool? animate;
 
   /// Specify that the automatic animation should repeat in a loop (default to true).
   /// The property has no effect if [animate] is false or [controller] is not null.
-  final bool repeat;
+  final bool? repeat;
 
   /// Specify that the automatic animation should repeat in a loop in a "reverse"
   /// mode (go from start to end and then continuously from end to start).
   /// It default to false.
   /// The property has no effect if [animate] is false, [repeat] is false or [controller] is not null.
-  final bool reverse;
+  final bool? reverse;
 
   /// A group of options to further customize the lottie animation.
   /// - A [text] delegate to dynamically change some text displayed in the animation
   /// - A value callback to change the properties of the animation at runtime.
   /// - A text style factory to map between a font family specified in the animation
   ///   and the font family in your assets.
-  final LottieDelegates delegates;
+  final LottieDelegates? delegates;
 
   /// Some options to enable/disable some feature of Lottie
   /// - enableMergePaths: Enable merge path support
-  final LottieOptions options;
+  final LottieOptions? options;
 
   /// A builder function responsible for creating the widget that represents
   /// this lottie animation.
@@ -294,7 +276,7 @@ class LottieBuilder extends StatefulWidget {
   /// ```
   /// {@end-tool}
   ///
-  final LottieFrameBuilder frameBuilder;
+  final LottieFrameBuilder? frameBuilder;
 
   /// If non-null, require the lottie animation to have this width.
   ///
@@ -306,7 +288,7 @@ class LottieBuilder extends StatefulWidget {
   /// layout constraints, so that the animation does not change size as it loads.
   /// Consider using [fit] to adapt the animation's rendering to fit the given width
   /// and height if the exact animation dimensions are not known in advance.
-  final double width;
+  final double? width;
 
   /// If non-null, require the lottie animation to have this height.
   ///
@@ -318,13 +300,13 @@ class LottieBuilder extends StatefulWidget {
   /// layout constraints, so that the animation does not change size as it loads.
   /// Consider using [fit] to adapt the animation's rendering to fit the given width
   /// and height if the exact animation dimensions are not known in advance.
-  final double height;
+  final double? height;
 
   /// How to inscribe the animation into the space allocated during layout.
   ///
   /// The default varies based on the other fields. See the discussion at
   /// [paintImage].
-  final BoxFit fit;
+  final BoxFit? fit;
 
   /// How to align the animation within its bounds.
   ///
@@ -351,16 +333,14 @@ class LottieBuilder extends StatefulWidget {
   ///    specify an [AlignmentGeometry].
   ///  * [AlignmentDirectional], like [Alignment] for specifying alignments
   ///    relative to text direction.
-  final AlignmentGeometry alignment;
+  final AlignmentGeometry? alignment;
 
   /// Indicate to automatically add a `RepaintBoundary` widget around the animation.
   /// This allows to optimize the app performance by isolating the animation in its
   /// own `Layer`.
   ///
   /// This property is `true` by default.
-  final bool addRepaintBoundary;
-
-  final bool disposable;
+  final bool? addRepaintBoundary;
 
   @override
   _LottieBuilderState createState() => _LottieBuilderState();
@@ -380,11 +360,12 @@ class LottieBuilder extends StatefulWidget {
 }
 
 class _LottieBuilderState extends State<LottieBuilder> {
-  Future<LottieComposition> _loadingFuture;
+  Future<LottieComposition>? _loadingFuture;
 
   @override
   void initState() {
     super.initState();
+
     _load();
   }
 
@@ -401,7 +382,7 @@ class _LottieBuilderState extends State<LottieBuilder> {
     var provider = widget.lottie;
     _loadingFuture = widget.lottie.load().then((composition) {
       if (mounted && widget.onLoaded != null && widget.lottie == provider) {
-        widget.onLoaded(composition);
+        widget.onLoaded!(composition);
       }
 
       return composition;
@@ -415,7 +396,7 @@ class _LottieBuilderState extends State<LottieBuilder> {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           if (kDebugMode) {
-            return ErrorWidget(snapshot.error);
+            return ErrorWidget(snapshot.error!);
           }
         }
 
@@ -435,11 +416,10 @@ class _LottieBuilderState extends State<LottieBuilder> {
           fit: widget.fit,
           alignment: widget.alignment,
           addRepaintBoundary: widget.addRepaintBoundary,
-          disposable: widget.disposable,
         );
 
         if (widget.frameBuilder != null) {
-          result = widget.frameBuilder(context, result, composition);
+          result = widget.frameBuilder!(context, result, composition);
         }
 
         return result;
@@ -453,12 +433,4 @@ class _LottieBuilderState extends State<LottieBuilder> {
     description.add(DiagnosticsProperty<Future<LottieComposition>>(
         'loadingFuture', _loadingFuture));
   }
-
-  // @override
-  // void dispose() {
-  //   if (widget.disposable) {
-  //     sharedLottieCache.remove(widget.lottie.cacheKey);
-  //   }
-  //   super.dispose();
-  // }
 }
