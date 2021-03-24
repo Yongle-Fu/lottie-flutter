@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+
 import '../lottie.dart';
 import 'frame_rate.dart';
 import 'lottie.dart';
@@ -49,6 +51,7 @@ class LottieBuilder extends StatefulWidget {
     this.fit,
     this.alignment,
     this.addRepaintBoundary,
+    this.disposable,
   }) : super(key: key);
 
   /// Creates a widget that displays an [LottieComposition] obtained from the network.
@@ -71,6 +74,7 @@ class LottieBuilder extends StatefulWidget {
     this.fit,
     this.alignment,
     this.addRepaintBoundary,
+    this.disposable,
   })  : lottie = NetworkLottie(src,
             headers: headers, imageProviderFactory: imageProviderFactory),
         super(key: key);
@@ -103,6 +107,7 @@ class LottieBuilder extends StatefulWidget {
     this.fit,
     this.alignment,
     this.addRepaintBoundary,
+    this.disposable,
   })  : lottie = FileLottie(file, imageProviderFactory: imageProviderFactory),
         super(key: key);
 
@@ -127,6 +132,7 @@ class LottieBuilder extends StatefulWidget {
     this.alignment,
     String? package,
     this.addRepaintBoundary,
+    this.disposable,
   })  : lottie = AssetLottie(name,
             bundle: bundle,
             package: package,
@@ -152,6 +158,7 @@ class LottieBuilder extends StatefulWidget {
     this.fit,
     this.alignment,
     this.addRepaintBoundary,
+    this.disposable,
   })  : lottie =
             MemoryLottie(bytes, imageProviderFactory: imageProviderFactory),
         super(key: key);
@@ -342,6 +349,8 @@ class LottieBuilder extends StatefulWidget {
   /// This property is `true` by default.
   final bool? addRepaintBoundary;
 
+  final bool? disposable;
+
   @override
   _LottieBuilderState createState() => _LottieBuilderState();
 
@@ -416,6 +425,7 @@ class _LottieBuilderState extends State<LottieBuilder> {
           fit: widget.fit,
           alignment: widget.alignment,
           addRepaintBoundary: widget.addRepaintBoundary,
+          disposable: widget.disposable,
         );
 
         if (widget.frameBuilder != null) {
@@ -432,5 +442,13 @@ class _LottieBuilderState extends State<LottieBuilder> {
     super.debugFillProperties(description);
     description.add(DiagnosticsProperty<Future<LottieComposition>>(
         'loadingFuture', _loadingFuture));
+  }
+
+  @override
+  void dispose() {
+    if (widget.disposable == true) {
+      sharedLottieCache.remove(widget.lottie.cacheKey);
+    }
+    super.dispose();
   }
 }

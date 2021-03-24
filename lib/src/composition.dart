@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'dart:typed_data';
+
 import 'package:archive/archive.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
+
 import 'frame_rate.dart';
 import 'logger.dart';
 import 'lottie_image_asset.dart';
@@ -185,6 +187,12 @@ class LottieComposition {
     assert(roundedProgress >= 0 && roundedProgress <= 1,
         'Progress is $roundedProgress');
     return roundedProgress;
+  }
+
+  void dispose() {
+    images.values.forEach((e) {
+      e.dispose();
+    });
   }
 
   @override

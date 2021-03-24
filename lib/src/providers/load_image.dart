@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+
 import 'package:flutter/widgets.dart';
+
 import '../composition.dart';
 import '../lottie_image_asset.dart';
 
@@ -8,6 +10,8 @@ typedef LottieImageProviderFactory = ImageProvider? Function(LottieImageAsset);
 
 Future<ui.Image?> loadImage(LottieComposition composition,
     LottieImageAsset lottieImage, ImageProvider provider) {
+  lottieImage.provider = provider;
+
   var completer = Completer<ui.Image?>();
   var imageStream = provider.resolve(ImageConfiguration.empty);
   late ImageStreamListener listener;

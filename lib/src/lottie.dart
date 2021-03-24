@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+
 import '../lottie.dart';
 import 'frame_rate.dart';
 import 'l.dart';
@@ -29,10 +31,12 @@ class Lottie extends StatefulWidget {
     this.delegates,
     this.options,
     bool? addRepaintBoundary,
+    bool? disposable,
   })  : animate = animate ?? true,
         reverse = reverse ?? false,
         repeat = repeat ?? true,
         addRepaintBoundary = addRepaintBoundary ?? true,
+        disposable = disposable ?? true,
         super(key: key);
 
   /// Creates a widget that displays an [LottieComposition] obtained from an [AssetBundle].
@@ -56,6 +60,7 @@ class Lottie extends StatefulWidget {
     Alignment? alignment,
     String? package,
     bool? addRepaintBoundary,
+    bool? disposable,
   }) =>
       LottieBuilder.asset(
         name,
@@ -98,6 +103,7 @@ class Lottie extends StatefulWidget {
     BoxFit? fit,
     Alignment? alignment,
     bool? addRepaintBoundary,
+    bool? disposable,
   }) =>
       LottieBuilder.file(
         file,
@@ -138,6 +144,7 @@ class Lottie extends StatefulWidget {
     BoxFit? fit,
     Alignment? alignment,
     bool? addRepaintBoundary,
+    bool? disposable,
   }) =>
       LottieBuilder.memory(
         bytes,
@@ -178,6 +185,7 @@ class Lottie extends StatefulWidget {
     BoxFit? fit,
     Alignment? alignment,
     bool? addRepaintBoundary,
+    bool? disposable,
   }) =>
       LottieBuilder.network(
         url,
@@ -286,6 +294,8 @@ class Lottie extends StatefulWidget {
   /// This property is `true` by default.
   final bool addRepaintBoundary;
 
+  final bool disposable;
+
   static bool get traceEnabled => L.traceEnabled;
   static set traceEnabled(bool enabled) {
     L.traceEnabled = enabled;
@@ -332,6 +342,9 @@ class _LottieState extends State<Lottie> with TickerProviderStateMixin {
   @override
   void dispose() {
     _autoAnimation.dispose();
+    if (widget.disposable) {
+      widget.composition?.dispose();
+    }
     super.dispose();
   }
 

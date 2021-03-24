@@ -1,3 +1,14 @@
+#
+## BrainCo lottie changes
+
+### [1.0.1+1] 2021/03/24
+* Flutter 2.0 support
+
+### [0.6.1+1]
+* remove from sharedLottieCache when LottieComposition dispose
+
+### original changes
+
 ## [1.0.1]
 - Implement `RenderBox.computeDryLayout`
 
