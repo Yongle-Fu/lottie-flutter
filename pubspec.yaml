@@ -6,7 +6,7 @@ homepage: https://github.com/Yongle-Fu/lottie-flutter
 publish_to: http://dart-pub.brainco.cn:8081
 
 environment:
-  sdk: '>=2.12.0-0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   archive: ^3.0.0
